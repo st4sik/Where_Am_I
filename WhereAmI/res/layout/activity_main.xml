@@ -10,4 +10,12 @@
         android:layout_height="wrap_content"
         android:text="@string/hello" />
 
+    <com.google.android.maps.MapView
+        android:id="@+id/myMapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:apiKey="myMapKey"
+        android:clickable="true"
+        android:enabled="true" />
+
 </LinearLayout>

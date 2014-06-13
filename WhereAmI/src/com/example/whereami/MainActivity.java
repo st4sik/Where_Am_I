@@ -4,6 +4,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
+import com.google.android.maps.GeoPoint;
+import com.google.android.maps.MapActivity;
+import com.google.android.maps.MapController;
+import com.google.android.maps.MapView;
+
 import android.app.Activity;
 import android.content.Context;
 import android.location.Address;
@@ -15,13 +20,21 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.widget.TextView;
 
-public class MainActivity extends Activity {
+public class MainActivity extends MapActivity {
+
+	private MapController mapController;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		MapView myMapView = (MapView) findViewById(R.id.myMapView);
+
+		mapController = myMapView.getController();
+		myMapView.setSatellite(true);
+		myMapView.setBuiltInZoomControls(true);
+		mapController.setZoom(17);
 		LocationManager locationManager;
 		String svcName = Context.LOCATION_SERVICE;
 		locationManager = (LocationManager) getSystemService(svcName);
@@ -71,6 +84,11 @@ public class MainActivity extends Activity {
 		String latLongString = "No location found";
 		String addressString = "No address found";
 		if (location != null) {
+
+			Double geoLat = location.getLatitude() * 1E6;
+			Double geoLng = location.getLongitude() * 1E6;
+			GeoPoint point = new GeoPoint(geoLat.intValue(), geoLng.intValue());
+			mapController.animateTo(point);
 			double lat = location.getLatitude();
 			double lng = location.getLongitude();
 			latLongString = "Lat: " + lat + "\nLong: " + lng;
@@ -79,31 +97,38 @@ public class MainActivity extends Activity {
 			double longitude = location.getLongitude();
 
 			Geocoder gc = new Geocoder(this, Locale.getDefault());
+			if (!Geocoder.isPresent())
+				addressString = "No geocoder available";
+			else {
+				try {
 
-			try {
+					List<Address> addresses = gc.getFromLocation(latitude,
+							longitude, 1);
+					StringBuilder sb = new StringBuilder();
+					if (addresses.size() > 0) {
+						Address address = addresses.get(0);
+						for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
+							sb.append(address.getAddressLine(i)).append("\n");
+						}
 
-				List<Address> addresses = gc.getFromLocation(latitude,
-						longitude, 1);
-				StringBuilder sb = new StringBuilder();
-				if (addresses.size() > 0) {
-					Address address = addresses.get(0);
-					for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
-						sb.append(address.getAddressLine(i)).append("\n");
+						sb.append(address.getLocality()).append("\n");
+						sb.append(address.getPostalCode()).append("\n");
+						sb.append(address.getCountryName());
 					}
+					addressString = sb.toString();
 
-					sb.append(address.getLocality()).append("\n");
-					sb.append(address.getPostalCode()).append("\n");
-					sb.append(address.getCountryName());
+				} catch (IOException e) {
+
 				}
-				addressString = sb.toString();
-
-			} catch (IOException e) {
-
 			}
 		}
-
 		myLocationText.setText("Your Current Position is:\n" + latLongString
 				+ "\n\n" + addressString);
+	}
+
+	@Override
+	protected boolean isRouteDisplayed() {
+		return false;
 	}
 
 }
