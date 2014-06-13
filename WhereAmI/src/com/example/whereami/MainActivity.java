@@ -8,6 +8,7 @@ import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
+import com.google.android.maps.Overlay;
 
 import android.app.Activity;
 import android.content.Context;
@@ -24,6 +25,8 @@ public class MainActivity extends MapActivity {
 
 	private MapController mapController;
 
+	private MyPositionOverlay positionOverlay;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -35,6 +38,12 @@ public class MainActivity extends MapActivity {
 		myMapView.setSatellite(true);
 		myMapView.setBuiltInZoomControls(true);
 		mapController.setZoom(17);
+		
+		positionOverlay=new MyPositionOverlay();
+		List<Overlay> overlays=myMapView.getOverlays();
+		overlays.add(positionOverlay);
+		myMapView.postInvalidate();
+		
 		LocationManager locationManager;
 		String svcName = Context.LOCATION_SERVICE;
 		locationManager = (LocationManager) getSystemService(svcName);
@@ -85,6 +94,7 @@ public class MainActivity extends MapActivity {
 		String addressString = "No address found";
 		if (location != null) {
 
+			positionOverlay.setLocation(location);
 			Double geoLat = location.getLatitude() * 1E6;
 			Double geoLng = location.getLongitude() * 1E6;
 			GeoPoint point = new GeoPoint(geoLat.intValue(), geoLng.intValue());
